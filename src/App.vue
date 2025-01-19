@@ -7,7 +7,7 @@
       </button>
     </div>
 
-    <h1 class="game-title">Turtle World - Raise your Turtle</h1>
+    <h1 class="game-title">Turdle - Raise your Turtle</h1>
 
     <div class="main-content">
       <!-- Left Column: Turtle Status -->
@@ -95,7 +95,7 @@
         </div>
         <!-- New Welcome Message -->
         <div v-if="!gameOver && !wordDetails" class="welcome-message">
-          <h3>Welcome to Turtle World! 🐢</h3>
+          <h3>Welcome to Turdle! 🐢</h3>
           <div class="welcome-content">
             <ul>
               <li>You have 8 attempts to guess a 6-letter word</li>
