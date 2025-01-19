@@ -2,12 +2,20 @@
   <div class="game-container">
     <h1>Wordle - Turtle Edition</h1>
 
-    <!-- Display Turtle's life stage -->
+    <!-- Display Turtle's life stage and image -->
+    <p>Current Streak: {{ streak }}</p>
     <div v-if="turtleLifeStage" class="turtle-status">
       <p>Stage: {{ turtleLifeStage }}</p>
+      <div class="turtle-image">
+        <img
+          :src="lifeStagesInfo[turtleLifeStage].image"
+          alt="Turtle Life Stage"
+        />
+      </div>
+      <p>{{ lifeStagesInfo[turtleLifeStage].description }}</p>
     </div>
 
-    <div class="grid">
+    <div v-if="gameStatus === 'ongoing'" class="grid">
       <!-- Loop over attempts (max 8) -->
       <div v-for="(row, rowIndex) in attempts" :key="rowIndex" class="row">
         <!-- Loop over each letter in the row (6 letters per row) -->
@@ -37,8 +45,23 @@
       <p v-if="guessedCorrectly">Congratulations, you guessed the word!</p>
       <p v-else>The word was: {{ correctWord }}. Better luck next time!</p>
     </div>
+    <!-- Word details section -->
+    <div v-if="wordDetails">
+      <h3>About this word-</h3>
+      <p>
+        <strong>Definition:</strong>
+        {{ wordDetails.definition }}
+      </p>
+      <p>
+        <strong>Example Usage:</strong>
+        {{ wordDetails.example || "No example available" }}
+      </p>
+    </div>
+    <!-- Continue button -->
+    <button class="continue-button" @click="continueGame">Continue</button>
   </div>
 </template>
+
 <script>
 export default {
   data() {
@@ -48,9 +71,37 @@ export default {
       correctWord: "",
       attemptCount: 0,
       gameOver: false,
+      gameStatus: "ongoing",
       guessedCorrectly: false,
       streak: 0, // Initialize streak
+      gameKey: 0,
+      wordDetails: null,
       turtleLifeStage: "Egg", // Start with "Egg"
+      lifeStagesInfo: {
+        Egg: {
+          image: require("@/assets/egg.png"), // Replace with the actual path to the egg image
+          description: "The turtle is still in the egg. Stay tuned!",
+        },
+        Hatchling: {
+          image: require("@/assets/hatchling.png"), // Replace with the actual path to the hatchling image
+          description:
+            "The turtle has just hatched. It is starting to explore!",
+        },
+        Juvenile: {
+          image: require("@/assets/juvenile.png"), // Replace with the actual path to the juvenile image
+          description: "The turtle is growing, becoming more adventurous.",
+        },
+        Adult: {
+          image: require("@/assets/adult.png"), // Replace with the actual path to the adult image
+          description:
+            "The turtle is now an adult, ready to take on challenges!",
+        },
+        Elder: {
+          image: require("@/assets/elder.png"), // Replace with the actual path to the elder image
+          description:
+            "The turtle has reached the elder stage, full of wisdom.",
+        },
+      },
     };
   },
   methods: {
@@ -70,13 +121,34 @@ export default {
         console.error("Error fetching word:", error);
       }
     },
+    async fetchWordDetails() {
+      if (!this.correctWord) return;
+      try {
+        const response = await fetch(
+          `https://api.dictionaryapi.dev/api/v2/entries/en/${this.correctWord}`
+        );
+        if (!response.ok) throw new Error("Word not found");
+
+        const data = await response.json();
+        // Assuming we only display the first meaning/definition
+        const firstMeaning = data[0]?.meanings[0]?.definitions[0];
+        this.wordDetails = {
+          definition: firstMeaning?.definition || "Not available",
+          example: firstMeaning?.example || null,
+        };
+      } catch (error) {
+        console.error("Error fetching word details:", error);
+        this.wordDetails = {
+          definition: "No details found for this word.",
+          example: null,
+        };
+      }
+    },
     getCellClass(letter) {
       if (!letter) return "empty";
 
-      // Ensure attempts[this.attemptCount] is valid before accessing it
       const currentAttempt = this.attempts[this.attemptCount];
 
-      // If it's the last attempt and no valid guess yet, return "empty"
       if (!currentAttempt || currentAttempt.length === 0) return "empty";
 
       if (this.correctWord.includes(letter)) {
@@ -100,6 +172,7 @@ export default {
           this.gameOver = true;
 
           this.streak++;
+          this.fetchWordDetails();
           this.updateTurtleLifeStage(); // Update turtle life stage after correct guess
         } else {
           this.attemptCount++;
@@ -111,10 +184,30 @@ export default {
       }
     },
     updateTurtleLifeStage() {
-      const lifeStages = ["Egg", "Hatchling", "Juvenile", "Adult", "Elder"];
       if (this.streak <= 4) {
-        this.turtleLifeStage = lifeStages[this.streak];
+        this.turtleLifeStage = [
+          "Egg",
+          "Hatchling",
+          "Juvenile",
+          "Adult",
+          "Elder",
+        ][this.streak];
       }
+    },
+    continueGame() {
+      console.log(this.streak);
+
+      // Reset game state (but keep the streak and attempts structure)
+      this.attempts = Array(8).fill(Array(6).fill("")); // Reset grid, but preserve structure
+      this.wordDetails = null;
+      this.currentGuess = ""; // Clear the current guess input
+      this.gameStatus = "ongoing"; // Set game status back to ongoing
+      this.gameOver = false;
+      // Optionally, fetch a new word (if you want a new word every time)
+      this.fetchWord();
+
+      // Increment the gameKey to trigger re-render of the grid without resetting other states
+      this.gameKey++;
     },
   },
   mounted() {
@@ -122,26 +215,46 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .game-container {
   position: relative;
-  background-image: url("@/assets/ocean.gif"); /* Your GIF URL */
+  /*background-image: url("@/assets/ocean.gif");  Your GIF URL 
   background-size: cover;
-  background-position: center;
+  background-position: center;*/
   width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  color: white; /* Ensure text is visible over the background */
+  color: black; /* Ensure text is visible over the background */
+}
+.word-details {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
-.turtle-status {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 20px;
+.word-details h3 {
+  margin-bottom: 10px;
 }
 
+.word-details p {
+  margin: 5px 0;
+}
+
+.turtle-image img {
+  width: 100px;
+  height: auto;
+  margin-top: 10px;
+}
+
+.turtle-description p {
+  margin: 0;
+  font-size: 16px;
+}
 .grid {
   display: grid;
   grid-template-rows: repeat(8, 0fr); /* 8 rows */
@@ -204,7 +317,20 @@ button {
 button:hover {
   background-color: #45a049;
 }
+.continue-button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 18px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
+.continue-button:hover {
+  background-color: #45a049;
+}
 div > p {
   font-size: 1.2em;
   margin-top: 20px;
