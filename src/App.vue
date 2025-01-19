@@ -1,6 +1,12 @@
 <template>
   <div class="game-container">
-    <h1>Wordle</h1>
+    <h1>Wordle - Turtle Edition</h1>
+
+    <!-- Display Turtle's life stage -->
+    <div v-if="turtleLifeStage" class="turtle-status">
+      <p>Stage: {{ turtleLifeStage }}</p>
+    </div>
+
     <div class="grid">
       <!-- Loop over attempts (max 8) -->
       <div v-for="(row, rowIndex) in attempts" :key="rowIndex" class="row">
@@ -33,17 +39,18 @@
     </div>
   </div>
 </template>
-
 <script>
 export default {
   data() {
     return {
-      attempts: Array(8).fill(Array(6).fill("")), // 8 rows, 6 columns (for a 6-letter word)
+      attempts: Array(8).fill(Array(6).fill("")),
       currentGuess: "",
       correctWord: "",
       attemptCount: 0,
       gameOver: false,
       guessedCorrectly: false,
+      streak: 0, // Initialize streak
+      turtleLifeStage: "Egg", // Start with "Egg"
     };
   },
   methods: {
@@ -58,6 +65,7 @@ export default {
         );
         const data = await response.json();
         this.correctWord = data[0].toUpperCase(); // Ensure it's a 6-letter word
+        console.log(this.correctWord);
       } catch (error) {
         console.error("Error fetching word:", error);
       }
@@ -90,6 +98,9 @@ export default {
         if (this.currentGuess === this.correctWord) {
           this.guessedCorrectly = true;
           this.gameOver = true;
+
+          this.streak++;
+          this.updateTurtleLifeStage(); // Update turtle life stage after correct guess
         } else {
           this.attemptCount++;
         }
@@ -99,24 +110,36 @@ export default {
         }
       }
     },
+    updateTurtleLifeStage() {
+      const lifeStages = ["Egg", "Hatchling", "Juvenile", "Adult", "Elder"];
+      if (this.streak <= 4) {
+        this.turtleLifeStage = lifeStages[this.streak];
+      }
+    },
   },
-
   mounted() {
     this.fetchWord();
   },
 };
 </script>
-
 <style scoped>
 .game-container {
-  text-align: center;
-  background-color: rgb(61, 15, 15); /* Light grey color */
-  font-family: Arial, sans-serif;
+  position: relative;
+  background-image: url("@/assets/ocean.gif"); /* Your GIF URL */
+  background-size: cover;
+  background-position: center;
+  width: 100vw;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white; /* Ensure text is visible over the background */
+}
 
-  align-items: center; /* Center vertically */
-
-  flex-direction: column; /* Stack elements vertically */
+.turtle-status {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
 .grid {
