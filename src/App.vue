@@ -484,10 +484,6 @@ input {
 .continue-button {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
-  background: lightgreen;
-  border-radius: 0.1rem;
-  border-color: lightgreen;
-  box-shadow: lightgreen;
 }
 
 /* Word details section more compact */
