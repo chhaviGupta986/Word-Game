@@ -1,72 +1,160 @@
 <template>
   <div class="game-container">
-    <h1>Wordle - Turtle Edition</h1>
-
-    <!-- Display Turtle's life stage and image -->
-    <p>Current Streak: {{ streak }}</p>
-    <div v-if="turtleLifeStage" class="turtle-status">
-      <p>Stage: {{ turtleLifeStage }}</p>
-      <div class="turtle-image">
-        <img
-          :src="lifeStagesInfo[turtleLifeStage].image"
-          alt="Turtle Life Stage"
-        />
-      </div>
-      <p>{{ lifeStagesInfo[turtleLifeStage].description }}</p>
+    <!-- Help Button -->
+    <div class="help-button-container">
+      <button @click="showInstructions = true" class="help-button">
+        How to Play
+      </button>
     </div>
 
-    <div v-if="gameStatus === 'ongoing'" class="grid">
-      <!-- Loop over attempts (max 8) -->
-      <div v-for="(row, rowIndex) in attempts" :key="rowIndex" class="row">
-        <!-- Loop over each letter in the row (6 letters per row) -->
-        <div
-          v-for="(letter, colIndex) in row"
-          :key="colIndex"
-          :class="`cell ${getCellClass(letter)}`"
-        >
-          {{ letter || "" }}
+    <h1 class="game-title">Wordle - Turtle Edition</h1>
+
+    <div class="main-content">
+      <!-- Left Column: Turtle Status -->
+      <div class="side-panel turtle-panel">
+        <div class="streak-counter">
+          <p>Current Streak: {{ streak }}</p>
+        </div>
+
+        <div v-if="turtleLifeStage" class="turtle-status">
+          <h2>Your Turtle</h2>
+          <p class="stage-label">Stage: {{ turtleLifeStage }}</p>
+          <div class="turtle-image-container">
+            <img
+              :src="lifeStagesInfo[turtleLifeStage].image"
+              alt="Turtle Life Stage"
+              class="turtle-image"
+            />
+          </div>
+          <p class="turtle-description">
+            {{ lifeStagesInfo[turtleLifeStage].description }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Center Column: Game Grid -->
+      <div class="game-panel">
+        <div v-if="gameStatus === 'ongoing'" class="grid">
+          <div v-for="(row, rowIndex) in attempts" :key="rowIndex" class="row">
+            <div
+              v-for="(letter, colIndex) in row"
+              :key="colIndex"
+              :class="`cell ${getCellClass(letter, rowIndex, colIndex)}`"
+            >
+              {{ letter || "" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <input
+            v-model="currentGuess"
+            type="text"
+            maxlength="6"
+            placeholder="Enter your guess"
+            @keyup.enter="submitGuess"
+            @input="validateInput"
+            :disabled="gameOver"
+          />
+          <button
+            @click="submitGuess"
+            :disabled="gameOver"
+            class="submit-button"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Game Status -->
+      <div class="side-panel status-panel">
+        <div v-if="gameOver" class="word-details">
+          <p v-if="guessedCorrectly" class="success-message">
+            Congratulations, you guessed the word!
+          </p>
+          <p v-else class="failure-message">
+            The word was: {{ correctWord }}. Better luck next time!
+          </p>
+          <button class="continue-button" @click="continueGame">
+            Play Again
+          </button>
+        </div>
+
+        <div v-if="wordDetails" class="word-details">
+          <h3>About this word</h3>
+          <div class="details-content">
+            <p>
+              <strong>Definition:</strong>
+              {{ wordDetails.definition }}
+            </p>
+            <p v-if="wordDetails.example">
+              <strong>Example:</strong>
+              {{ wordDetails.example }}
+            </p>
+          </div>
+        </div>
+        <!-- New Welcome Message -->
+        <div v-if="!gameOver && !wordDetails" class="welcome-message">
+          <h3>Welcome to Turtle! 🐢</h3>
+          <div class="welcome-content">
+            <ul>
+              <li>You have 8 attempts to guess a 6-letter word</li>
+              <li>Your turtle grows with each winning streak</li>
+              <li>Click 'How to Play' for more details</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Guess input section -->
-    <input
-      v-model="currentGuess"
-      type="text"
-      maxlength="6"
-      placeholder="Enter your guess"
-      @keyup.enter="submitGuess"
-      @input="validateInput"
-      :disabled="gameOver"
-    />
-    <button @click="submitGuess" :disabled="gameOver">Submit Guess</button>
-
-    <div v-if="gameOver">
-      <p v-if="guessedCorrectly">Congratulations, you guessed the word!</p>
-      <p v-else>The word was: {{ correctWord }}. Better luck next time!</p>
+    <!-- Instructions Modal -->
+    <div v-if="showInstructions" class="modal-overlay">
+      <div class="modal">
+        <button class="close-button" @click="showInstructions = false">
+          ×
+        </button>
+        <h2>How to Play</h2>
+        <div class="instructions">
+          <p>Guess the 6-letter word in 8 tries!</p>
+          <ul>
+            <li>Each guess must be a valid 6-letter word</li>
+            <li>
+              The color of the tiles will change to show how close your guess
+              was:
+            </li>
+          </ul>
+          <div class="example-tiles">
+            <div class="example">
+              <div class="cell correct">A</div>
+              <span>Letter is in the word and in the correct spot</span>
+            </div>
+            <div class="example">
+              <div class="cell present">B</div>
+              <span>Letter is in the word but in the wrong spot</span>
+            </div>
+            <div class="example">
+              <div class="cell absent">C</div>
+              <span>Letter is not in the word</span>
+            </div>
+          </div>
+          <h3>Turtle Evolution</h3>
+          <p>
+            Your turtle evolves as you build your winning streak! Can you reach
+            the Elder stage?
+          </p>
+        </div>
+      </div>
     </div>
-    <!-- Word details section -->
-    <div v-if="wordDetails">
-      <h3>About this word-</h3>
-      <p>
-        <strong>Definition:</strong>
-        {{ wordDetails.definition }}
-      </p>
-      <p>
-        <strong>Example Usage:</strong>
-        {{ wordDetails.example || "No example available" }}
-      </p>
-    </div>
-    <!-- Continue button -->
-    <button class="continue-button" @click="continueGame">Continue</button>
   </div>
 </template>
-
 <script>
 export default {
   data() {
     return {
-      attempts: Array(8).fill(Array(6).fill("")),
+      showInstructions: false,
+      attempts: Array(8)
+        .fill()
+        .map(() => Array(6).fill("")), // Fixed array creation
       currentGuess: "",
       correctWord: "",
       attemptCount: 0,
@@ -115,10 +203,20 @@ export default {
           "https://random-word-api.herokuapp.com/word?length=6"
         );
         const data = await response.json();
-        this.correctWord = data[0].toUpperCase(); // Ensure it's a 6-letter word
-        console.log(this.correctWord);
+        this.correctWord = data[0].toUpperCase();
+        console.log("Correct word:", this.correctWord); // For debugging
       } catch (error) {
         console.error("Error fetching word:", error);
+        // Fallback words in case API fails
+        const fallbackWords = [
+          "TURTLE",
+          "NATURE",
+          "SILENT",
+          "BRIGHT",
+          "CASTLE",
+        ];
+        this.correctWord =
+          fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
       }
     },
     async fetchWordDetails() {
@@ -144,44 +242,91 @@ export default {
         };
       }
     },
-    getCellClass(letter) {
-      if (!letter) return "empty";
+    getCellClass(letter, rowIndex, colIndex) {
+      // Return empty for unfilled cells or future rows
+      if (!letter || rowIndex > this.attemptCount) return "empty";
 
-      const currentAttempt = this.attempts[this.attemptCount];
+      // Get the full guess for this row
+      const currentGuess = this.attempts[rowIndex].join("").toUpperCase();
+      letter = letter.toUpperCase();
 
-      if (!currentAttempt || currentAttempt.length === 0) return "empty";
+      // If this row hasn't been completed yet
+      if (currentGuess.length !== 6) return "empty";
 
-      if (this.correctWord.includes(letter)) {
-        return this.correctWord.indexOf(letter) ===
-          currentAttempt.indexOf(letter)
-          ? "correct"
-          : "present";
+      // Create arrays to track correct positions and used letters
+      const correctPositions = new Array(6).fill(false);
+      const usedIndices = new Array(6).fill(false);
+
+      // First pass: Mark correct positions
+      for (let i = 0; i < 6; i++) {
+        if (currentGuess[i] === this.correctWord[i]) {
+          correctPositions[i] = true;
+          usedIndices[i] = true;
+        }
       }
+
+      // If this specific letter is in correct position
+      if (correctPositions[colIndex]) {
+        return "correct";
+      }
+
+      // Second pass: Check for present letters
+      if (this.correctWord.includes(letter)) {
+        // Count remaining occurrences of the letter in the target word
+        let availableCount = 0;
+        for (let i = 0; i < 6; i++) {
+          if (!usedIndices[i] && this.correctWord[i] === letter) {
+            availableCount++;
+          }
+        }
+
+        // Count how many times this letter appears before current position in guess
+        let previousCount = 0;
+        for (let i = 0; i < colIndex; i++) {
+          if (currentGuess[i] === letter && !correctPositions[i]) {
+            previousCount++;
+          }
+        }
+
+        if (previousCount < availableCount) {
+          return "present";
+        }
+      }
+
       return "absent";
     },
-    submitGuess() {
-      this.currentGuess = this.currentGuess.toUpperCase();
-      if (
-        this.currentGuess.length === 6 &&
-        this.attemptCount < 8 &&
-        !this.gameOver
-      ) {
-        this.attempts[this.attemptCount] = this.currentGuess.split("");
-        if (this.currentGuess === this.correctWord) {
-          this.guessedCorrectly = true;
-          this.gameOver = true;
 
-          this.streak++;
-          this.fetchWordDetails();
-          this.updateTurtleLifeStage(); // Update turtle life stage after correct guess
-        } else {
-          this.attemptCount++;
-        }
-        this.currentGuess = "";
-        if (this.attemptCount >= 8 && !this.guessedCorrectly) {
+    async submitGuess() {
+      if (this.currentGuess.length !== 6 || this.gameOver) return;
+
+      this.currentGuess = this.currentGuess.toUpperCase();
+
+      // Create new array for current attempt
+      const newAttempts = [...this.attempts];
+      newAttempts[this.attemptCount] = this.currentGuess.split("");
+      this.attempts = newAttempts;
+
+      if (this.currentGuess === this.correctWord) {
+        this.getCellClass();
+        this.streak++;
+        this.updateTurtleLifeStage();
+        await this.fetchWordDetails();
+        this.guessedCorrectly = true;
+        this.gameOver = true;
+      } else {
+        this.attemptCount++;
+
+        // Check if all attempts are exhausted
+        if (this.attemptCount >= 8) {
           this.gameOver = true;
+          this.guessedCorrectly = false;
+          this.streak = 0; // Reset streak on failure
+          this.turtleLifeStage = "Egg";
+          await this.fetchWordDetails();
         }
       }
+
+      this.currentGuess = "";
     },
     updateTurtleLifeStage() {
       if (this.streak <= 4) {
@@ -195,18 +340,16 @@ export default {
       }
     },
     continueGame() {
-      console.log(this.streak);
-
-      // Reset game state (but keep the streak and attempts structure)
-      this.attempts = Array(8).fill(Array(6).fill("")); // Reset grid, but preserve structure
-      this.wordDetails = null;
-      this.currentGuess = ""; // Clear the current guess input
-      this.gameStatus = "ongoing"; // Set game status back to ongoing
+      this.attempts = Array(8)
+        .fill()
+        .map(() => Array(6).fill(""));
+      this.attemptCount = 0;
       this.gameOver = false;
-      // Optionally, fetch a new word (if you want a new word every time)
+      this.guessedCorrectly = false;
+      this.gameStatus = "ongoing";
+      this.wordDetails = null;
+      this.currentGuess = "";
       this.fetchWord();
-
-      // Increment the gameKey to trigger re-render of the grid without resetting other states
       this.gameKey++;
     },
   },
@@ -218,68 +361,280 @@ export default {
 
 <style scoped>
 .game-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
   position: relative;
-  /*background-image: url("@/assets/ocean.gif");  Your GIF URL 
-  background-size: cover;
-  background-position: center;*/
-  width: 100vw;
+  font-family: "Fredoka", sans-serif; /* Or your custom font */
+}
+.game-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Turtle Panel Styles */
+.turtle-panel {
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streak-counter {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.turtle-status {
+  text-align: center;
+}
+
+.stage-label {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin: 0.75rem 0;
+}
+
+.turtle-image-container {
+  background: white;
+  border-radius: 50%;
+  padding: 1rem;
+  margin: 1rem auto;
+  width: 150px;
+  height: 150px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  flex-direction: column;
-  color: black; /* Ensure text is visible over the background */
-}
-.word-details {
-  margin-top: 20px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-image: url("@/assets/ocean.gif"); /* Your GIF URL */
+  background-size: cover;
+  background-position: center;
 }
 
-.word-details h3 {
-  margin-bottom: 10px;
+.turtle-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
 }
 
-.word-details p {
-  margin: 5px 0;
+.turtle-description {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #4a5568;
 }
 
-.turtle-image img {
-  width: 100px;
-  height: auto;
-  margin-top: 10px;
+/* Game Panel Styles */
+.game-panel {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.turtle-description p {
-  margin: 0;
-  font-size: 16px;
-}
 .grid {
   display: grid;
-  grid-template-rows: repeat(8, 0fr); /* 8 rows */
-  grid-template-columns: repeat(6, 0fr); /* 6 columns for a 6-letter word */
-  gap: 2px;
-  justify-items: center;
+  grid-template-rows: repeat(8, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  max-width: 360px;
+  margin: 0 auto 1.5rem;
 }
 
 .row {
-  display: contents; /* Ensure it doesn’t wrap each row but aligns inside the grid */
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.25rem;
 }
 
 .cell {
-  width: 50px;
-  height: 50px;
+  aspect-ratio: 1;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 24px;
-  border: 2px solid #ddd;
-  transition: background-color 0.3s ease;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.25rem;
+  transition: all 0.3s ease;
 }
 
-.empty {
-  background-color: #f0f0f0;
+/* Rest of the styles remain the same, just the input section gets more compact */
+.input-section {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem auto;
+  max-width: 360px;
+}
+
+input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 0.25rem;
+  transition: border-color 0.3s ease;
+}
+
+.submit-button,
+.continue-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Word details section more compact */
+.word-details {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  max-width: 360px;
+}
+
+.details-content {
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+
+  .game-container {
+    padding: 0.75rem;
+  }
+
+  .turtle-panel,
+  .game-panel {
+    padding: 1rem;
+  }
+
+  .grid {
+    max-width: 300px;
+  }
+
+  .cell {
+    font-size: 1rem;
+  }
+
+  .input-section {
+    max-width: 300px;
+  }
+
+  .word-details {
+    max-width: 300px;
+  }
+}
+.help-button-container {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.help-button {
+  padding: 0.5rem 1rem;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.help-button:hover {
+  background: #3182ce;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 280px minmax(auto, 360px) 280px;
+  gap: 1.5rem;
+  align-items: start;
+  justify-content: center;
+}
+
+.side-panel {
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #4a5568;
+}
+
+.instructions {
+  margin-top: 1rem;
+}
+
+.instructions ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.instructions li {
+  margin: 0.5rem 0;
+}
+
+.example-tiles {
+  margin: 1rem 0;
+}
+
+.example {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.example .cell {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.25rem;
 }
 
 .correct {
@@ -296,44 +651,27 @@ export default {
   background-color: gray;
   color: white;
 }
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
+  }
 
-input {
-  margin-top: 20px;
-  padding: 10px;
-  font-size: 18px;
-  width: 200px;
-}
+  .help-button-container {
+    position: static;
+    text-align: right;
+    margin-bottom: 1rem;
+  }
 
-button {
-  margin-top: 10px;
-  padding: 10px;
-  font-size: 18px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
+  .side-panel {
+    max-width: none;
+  }
 
-button:hover {
-  background-color: #45a049;
-}
-.continue-button {
-  margin-top: 10px;
-  padding: 10px;
-  font-size: 18px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.continue-button:hover {
-  background-color: #45a049;
-}
-div > p {
-  font-size: 1.2em;
-  margin-top: 20px;
-  font-weight: bold;
+  .modal {
+    width: 95%;
+    margin: 1rem;
+  }
 }
 </style>
