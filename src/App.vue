@@ -200,7 +200,7 @@ export default {
     async fetchWord() {
       try {
         const response = await fetch(
-          "https://random-word-api.herokuapp.com/word?length=6"
+          "https://random-word-api.vercel.app/api?words=1&length=6"
         );
         const data = await response.json();
         this.correctWord = data[0].toUpperCase();
@@ -217,6 +217,7 @@ export default {
         ];
         this.correctWord =
           fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
+        console.log("Fallback word:", this.correctWord); // For debugging
       }
     },
     async fetchWordDetails() {
