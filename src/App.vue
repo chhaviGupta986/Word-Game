@@ -7,7 +7,7 @@
       </button>
     </div>
 
-    <h1 class="game-title">Wordle - Turtle Edition</h1>
+    <h1 class="game-title">Turtle World - Raise your Turtle</h1>
 
     <div class="main-content">
       <!-- Left Column: Turtle Status -->
@@ -95,7 +95,7 @@
         </div>
         <!-- New Welcome Message -->
         <div v-if="!gameOver && !wordDetails" class="welcome-message">
-          <h3>Welcome to Turtle! 🐢</h3>
+          <h3>Welcome to Turtle World! 🐢</h3>
           <div class="welcome-content">
             <ul>
               <li>You have 8 attempts to guess a 6-letter word</li>
@@ -168,7 +168,7 @@ export default {
       lifeStagesInfo: {
         Egg: {
           image: require("@/assets/egg.png"), // Replace with the actual path to the egg image
-          description: "The turtle is still in the egg. Stay tuned!",
+          description: "The turtle is still in the egg. Keep playing!",
         },
         Hatchling: {
           image: require("@/assets/hatchling.png"), // Replace with the actual path to the hatchling image
@@ -375,13 +375,6 @@ export default {
   color: #2c3e50;
 }
 
-.main-content {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-
 /* Turtle Panel Styles */
 .turtle-panel {
   background: #f8f9fa;
@@ -437,6 +430,7 @@ export default {
 /* Game Panel Styles */
 .game-panel {
   background: white;
+  background: #4299e1;
   border-radius: 0.75rem;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -495,7 +489,7 @@ input {
 /* Word details section more compact */
 .word-details {
   padding: 1rem;
-  background: #f8f9fa;
+  background: rgb(219, 232, 245);
   border-radius: 0.5rem;
   max-width: 360px;
 }
@@ -557,14 +551,18 @@ input {
 
 .main-content {
   display: grid;
-  grid-template-columns: 280px minmax(auto, 360px) 280px;
-  gap: 1.5rem;
+  grid-template-columns: 290px minmax(auto, 360px) 290px;
+  gap: 3rem; /* Increased from 1.5rem to 2.5rem for more spacing */
   align-items: start;
   justify-content: center;
+  max-width: 1300px; /* Slightly increased to accommodate the wider gaps */
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .side-panel {
   background: #f8f9fa;
+  background: rgb(219, 232, 245);
   border-radius: 0.75rem;
   padding: 1.25rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
