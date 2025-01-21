@@ -64,6 +64,10 @@
             Submit
           </button>
         </div>
+        <!-- Error message -->
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
       </div>
 
       <!-- Right Column: Game Status -->
@@ -164,6 +168,7 @@ export default {
       streak: 0, // Initialize streak
       gameKey: 0,
       wordDetails: null,
+      errorMessage: "", // For displaying errors
       turtleLifeStage: "Egg", // Start with "Egg"
       lifeStagesInfo: {
         Egg: {
@@ -296,11 +301,34 @@ export default {
 
       return "absent";
     },
+    async validateWord(word) {
+      try {
+        const response = await fetch(
+          `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+        );
 
+        if (response.ok) {
+          return true; // Valid word
+        } else {
+          return false; // Invalid word
+        }
+      } catch (error) {
+        console.error("Error checking word validity:", error);
+        return true; // Considering valid if an error occurs
+      }
+    },
     async submitGuess() {
       if (this.currentGuess.length !== 6 || this.gameOver) return;
 
       this.currentGuess = this.currentGuess.toUpperCase();
+      const isValidWord = await this.validateWord(this.currentGuess);
+
+      if (!isValidWord) {
+        this.errorMessage = "Not a valid English word. Try again!";
+        return; // Exit function if the word is invalid
+      }
+
+      this.errorMessage = ""; // Clear error message if valid
 
       // Create new array for current attempt
       const newAttempts = [...this.attempts];
@@ -352,6 +380,7 @@ export default {
       this.currentGuess = "";
       this.fetchWord();
       this.gameKey++;
+      this.errorMessage = ""; // Clear any leftover error messages
     },
   },
   mounted() {
@@ -382,6 +411,11 @@ export default {
   border-radius: 0.75rem;
   padding: 1.25rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.error-message {
+  text-align: center;
+  padding: none;
+  margin: none;
 }
 
 .streak-counter {
@@ -516,7 +550,6 @@ input {
   .game-panel {
     padding: 1rem;
   }
-
   .grid {
     max-width: 300px;
   }
