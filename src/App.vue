@@ -210,15 +210,28 @@ export default {
         const data = await response.json();
         this.correctWord = data[0].toUpperCase();
         console.log("Correct word:", this.correctWord); // For debugging
+        const result = await this.validateWord(this.correctWord);
+        const isValidWord = result.valid;
+        if (!isValidWord) {
+          throw new Error(
+            "generated word does not belong in dictionary or api/network down"
+          );
+        }
       } catch (error) {
         console.error("Error fetching word:", error);
         // Fallback words in case API fails
         const fallbackWords = [
           "TURTLE",
-          "NATURE",
           "SILENT",
           "BRIGHT",
+          "ABUSER",
+          "SOLEMN",
           "CASTLE",
+          "ZEPHYR",
+          "DYNAMO",
+          "ALLIES",
+          "OXFORD",
+          "OBLAST",
         ];
         this.correctWord =
           fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
@@ -301,30 +314,50 @@ export default {
 
       return "absent";
     },
-    async validateWord(word) {
-      try {
-        const response = await fetch(
-          `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
-        );
 
-        if (response.ok) {
-          return true; // Valid word
-        } else {
-          return false; // Invalid word
+    async validateWord(word) {
+      const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
+      try {
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          // Differentiate by status code
+          if (response.status === 404) {
+            // Word not found
+            return {
+              valid: false,
+              message: "Not a valid English word.",
+            };
+          } else {
+            // Other server errors (e.g., 500)
+            return {
+              valid: false,
+              message:
+                "The dictionary is currently unavailable. Try again later!",
+            };
+          }
         }
+
+        // If the response is OK (status 200), the word is valid
+        const data = await response.json();
+        return { valid: true, data };
       } catch (error) {
-        console.error("Error checking word validity:", error);
-        return true; // Considering valid if an error occurs
+        // Handle network errors or fetch-related issues
+        return {
+          valid: false,
+          message: "Please check your connection and try again!",
+        };
       }
     },
     async submitGuess() {
       if (this.currentGuess.length !== 6 || this.gameOver) return;
 
       this.currentGuess = this.currentGuess.toUpperCase();
-      const isValidWord = await this.validateWord(this.currentGuess);
-
+      const result = await this.validateWord(this.currentGuess);
+      const isValidWord = result.valid;
+      const err = result.message;
       if (!isValidWord) {
-        this.errorMessage = "Not a valid English word. Try again!";
+        this.errorMessage = err;
         return; // Exit function if the word is invalid
       }
 
