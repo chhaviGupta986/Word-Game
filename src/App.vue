@@ -152,6 +152,7 @@
   </div>
 </template>
 <script>
+import confetti from "canvas-confetti";
 export default {
   data() {
     return {
@@ -372,6 +373,8 @@ export default {
         this.getCellClass();
         this.streak++;
         this.updateTurtleLifeStage();
+        // Trigger confetti
+        this.launchConfetti();
         await this.fetchWordDetails();
         this.guessedCorrectly = true;
         this.gameOver = true;
@@ -414,6 +417,13 @@ export default {
       this.fetchWord();
       this.gameKey++;
       this.errorMessage = ""; // Clear any leftover error messages
+    },
+    launchConfetti() {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
     },
   },
   mounted() {
