@@ -202,7 +202,7 @@ export default {
         );
         const data = await response.json();
         this.correctWord = data[0].toUpperCase();
-        console.log("Correct word:", this.correctWord); // debugging
+        // console.log("Correct word:", this.correctWord); // debugging
         const result = await this.validateWord(this.correctWord);
         const isValidWord = result.valid;
         if (!isValidWord) {
