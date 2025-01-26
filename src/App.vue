@@ -1,6 +1,5 @@
 <template>
   <div class="game-container">
-    <!-- Help Button -->
     <div class="help-button-container">
       <button @click="showInstructions = true" class="help-button">
         How to Play
@@ -10,7 +9,6 @@
     <h1 class="game-title">Turdle - Raise your Turtle</h1>
 
     <div class="main-content">
-      <!-- Left Column: Turtle Status -->
       <div class="side-panel turtle-panel">
         <div class="streak-counter">
           <p>Current Streak: {{ streak }}</p>
@@ -32,7 +30,6 @@
         </div>
       </div>
 
-      <!-- Center Column: Game Grid -->
       <div class="game-panel">
         <div v-if="gameStatus === 'ongoing'" class="grid">
           <div v-for="(row, rowIndex) in attempts" :key="rowIndex" class="row">
@@ -64,13 +61,11 @@
             Submit
           </button>
         </div>
-        <!-- Error message -->
         <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
       </div>
 
-      <!-- Right Column: Game Status -->
       <div class="side-panel status-panel">
         <div v-if="gameOver" class="word-details">
           <p v-if="guessedCorrectly" class="success-message">
@@ -97,7 +92,6 @@
             </p>
           </div>
         </div>
-        <!-- New Welcome Message -->
         <div v-if="!gameOver && !wordDetails" class="welcome-message">
           <h3>Welcome to Turdle! 🐢</h3>
           <div class="welcome-content">
@@ -111,7 +105,6 @@
       </div>
     </div>
 
-    <!-- Instructions Modal -->
     <div v-if="showInstructions" class="modal-overlay">
       <div class="modal">
         <button class="close-button" @click="showInstructions = false">
@@ -159,39 +152,39 @@ export default {
       showInstructions: false,
       attempts: Array(7)
         .fill()
-        .map(() => Array(6).fill("")), // Fixed array creation
+        .map(() => Array(6).fill("")),
       currentGuess: "",
       correctWord: "",
       attemptCount: 0,
       gameOver: false,
       gameStatus: "ongoing",
       guessedCorrectly: false,
-      streak: 0, // Initialize streak
+      streak: 0,
       gameKey: 0,
       wordDetails: null,
-      errorMessage: "", // For displaying errors
-      turtleLifeStage: "Egg", // Start with "Egg"
+      errorMessage: "",
+      turtleLifeStage: "Egg",
       lifeStagesInfo: {
         Egg: {
-          image: require("@/assets/egg.png"), // Replace with the actual path to the egg image
+          image: require("@/assets/egg.png"),
           description: "The turtle is still in the egg. Keep playing!",
         },
         Hatchling: {
-          image: require("@/assets/hatchling.png"), // Replace with the actual path to the hatchling image
+          image: require("@/assets/hatchling.png"),
           description:
             "The turtle has just hatched. It is starting to explore!",
         },
         Juvenile: {
-          image: require("@/assets/juvenile.png"), // Replace with the actual path to the juvenile image
+          image: require("@/assets/juvenile.png"),
           description: "The turtle is growing, becoming more adventurous.",
         },
         Adult: {
-          image: require("@/assets/adult.png"), // Replace with the actual path to the adult image
+          image: require("@/assets/adult.png"),
           description:
             "The turtle is now an adult, ready to take on challenges!",
         },
         Elder: {
-          image: require("@/assets/elder.png"), // Replace with the actual path to the elder image
+          image: require("@/assets/elder.png"),
           description:
             "The turtle has reached the elder stage, full of wisdom.",
         },
@@ -200,7 +193,6 @@ export default {
   },
   methods: {
     validateInput() {
-      // Remove numbers and spaces from the input
       this.currentGuess = this.currentGuess.replace(/[^a-zA-Z]/g, "");
     },
     async fetchWord() {
@@ -210,7 +202,7 @@ export default {
         );
         const data = await response.json();
         this.correctWord = data[0].toUpperCase();
-        console.log("Correct word:", this.correctWord); // For debugging
+        console.log("Correct word:", this.correctWord); // debugging
         const result = await this.validateWord(this.correctWord);
         const isValidWord = result.valid;
         if (!isValidWord) {
@@ -220,7 +212,7 @@ export default {
         }
       } catch (error) {
         console.error("Error fetching word:", error);
-        // Fallback words in case API fails
+        //Fallback in case API fails
         const fallbackWords = [
           "TURTLE",
           "SILENT",
@@ -236,7 +228,7 @@ export default {
         ];
         this.correctWord =
           fallbackWords[Math.floor(Math.random() * fallbackWords.length)];
-        console.log("Fallback word:", this.correctWord); // For debugging
+        console.log("Fallback word:", this.correctWord);
       }
     },
     async fetchWordDetails() {
@@ -248,7 +240,6 @@ export default {
         if (!response.ok) throw new Error("Word not found");
 
         const data = await response.json();
-        // Assuming we only display the first meaning/definition
         const firstMeaning = data[0]?.meanings[0]?.definitions[0];
         this.wordDetails = {
           definition: firstMeaning?.definition || "Not available",
@@ -263,21 +254,16 @@ export default {
       }
     },
     getCellClass(letter, rowIndex, colIndex) {
-      // Return empty for unfilled cells or future rows
       if (!letter || rowIndex > this.attemptCount) return "empty";
 
-      // Get the full guess for this row
       const currentGuess = this.attempts[rowIndex].join("").toUpperCase();
       letter = letter.toUpperCase();
 
-      // If this row hasn't been completed yet
       if (currentGuess.length !== 6) return "empty";
 
-      // Create arrays to track correct positions and used letters
       const correctPositions = new Array(6).fill(false);
       const usedIndices = new Array(6).fill(false);
 
-      // First pass: Mark correct positions
       for (let i = 0; i < 6; i++) {
         if (currentGuess[i] === this.correctWord[i]) {
           correctPositions[i] = true;
@@ -285,14 +271,11 @@ export default {
         }
       }
 
-      // If this specific letter is in correct position
       if (correctPositions[colIndex]) {
         return "correct";
       }
 
-      // Second pass: Check for present letters
       if (this.correctWord.includes(letter)) {
-        // Count remaining occurrences of the letter in the target word
         let availableCount = 0;
         for (let i = 0; i < 6; i++) {
           if (!usedIndices[i] && this.correctWord[i] === letter) {
@@ -300,7 +283,6 @@ export default {
           }
         }
 
-        // Count how many times this letter appears before current position in guess
         let previousCount = 0;
         for (let i = 0; i < colIndex; i++) {
           if (currentGuess[i] === letter && !correctPositions[i]) {
@@ -322,15 +304,14 @@ export default {
         const response = await fetch(apiUrl);
 
         if (!response.ok) {
-          // Differentiate by status code
           if (response.status === 404) {
-            // Word not found
+            //Word not found
             return {
               valid: false,
               message: "Not a valid English word.",
             };
           } else {
-            // Other server errors (e.g., 500)
+            //other server errors like 500
             return {
               valid: false,
               message:
@@ -339,11 +320,9 @@ export default {
           }
         }
 
-        // If the response is OK (status 200), the word is valid
         const data = await response.json();
         return { valid: true, data };
       } catch (error) {
-        // Handle network errors or fetch-related issues
         return {
           valid: false,
           message: "Please check your connection and try again!",
@@ -359,12 +338,11 @@ export default {
       const err = result.message;
       if (!isValidWord) {
         this.errorMessage = err;
-        return; // Exit function if the word is invalid
+        return;
       }
 
-      this.errorMessage = ""; // Clear error message if valid
+      this.errorMessage = "";
 
-      // Create new array for current attempt
       const newAttempts = [...this.attempts];
       newAttempts[this.attemptCount] = this.currentGuess.split("");
       this.attempts = newAttempts;
@@ -381,11 +359,10 @@ export default {
       } else {
         this.attemptCount++;
 
-        // Check if all attempts are exhausted
         if (this.attemptCount >= 7) {
           this.gameOver = true;
           this.guessedCorrectly = false;
-          this.streak = 0; // Reset streak on failure
+          this.streak = 0; // reset streak on failure
           this.turtleLifeStage = "Egg";
           await this.fetchWordDetails();
         }
@@ -416,7 +393,7 @@ export default {
       this.currentGuess = "";
       this.fetchWord();
       this.gameKey++;
-      this.errorMessage = ""; // Clear any leftover error messages
+      this.errorMessage = "";
     },
     launchConfetti() {
       confetti({
@@ -439,7 +416,7 @@ export default {
   padding: 1rem;
   min-height: 100vh;
   position: relative;
-  font-family: "Fredoka", sans-serif; /* Or your custom font */
+  font-family: "Fredoka", sans-serif;
 }
 .game-title {
   text-align: center;
@@ -448,7 +425,6 @@ export default {
   color: #2c3e50;
 }
 
-/* Turtle Panel Styles */
 .turtle-panel {
   background: #f8f9fa;
   border-radius: 0.75rem;
@@ -488,7 +464,7 @@ export default {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-image: url("@/assets/ocean.gif"); /* Your GIF URL */
+  background-image: url("@/assets/ocean.gif");
   background-size: cover;
   background-position: center;
 }
@@ -505,7 +481,6 @@ export default {
   color: #4a5568;
 }
 
-/* Game Panel Styles */
 .game-panel {
   background: #4299e1;
   border-radius: 0.75rem;
@@ -540,7 +515,6 @@ export default {
   transition: all 0.3s ease;
 }
 
-/* Rest of the styles remain the same, just the input section gets more compact */
 .input-section {
   display: flex;
   gap: 0.75rem;
@@ -563,7 +537,6 @@ input {
   font-size: 0.9rem;
 }
 
-/* Word details section more compact */
 .word-details {
   padding: 1rem;
   background: rgb(219, 232, 245);
@@ -575,7 +548,7 @@ input {
   font-size: 0.9rem;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
   .main-content {
     grid-template-columns: 1fr;
@@ -632,10 +605,10 @@ input {
 .main-content {
   display: grid;
   grid-template-columns: 290px minmax(auto, 360px) 290px;
-  gap: 3rem; /* Increased from 1.5rem to 2.5rem for more spacing */
+  gap: 3rem;
   align-items: start;
   justify-content: center;
-  max-width: 1300px; /* Slightly increased to accommodate the wider gaps */
+  max-width: 1300px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -649,7 +622,6 @@ input {
   height: fit-content;
 }
 
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -729,7 +701,7 @@ input {
   background-color: gray;
   color: white;
 }
-/* Responsive Design */
+
 @media (max-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr;
