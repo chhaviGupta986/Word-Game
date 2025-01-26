@@ -13,4 +13,6 @@ Vocabulary-building game inspired by the classic Wordle.
 - **random-word-api.vercel.app** for generating new words.
 - **Dictionary API** for validating words and providing definitions.
 
+![image](https://github.com/user-attachments/assets/bb69be12-d824-42d9-933e-559633890ba7)
+
 This is only a personal/educational project inspired by popular word-guessing game Wordle.
