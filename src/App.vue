@@ -102,7 +102,7 @@
           <h3>Welcome to Turdle! 🐢</h3>
           <div class="welcome-content">
             <ul>
-              <li>You have 8 attempts to guess a 6-letter word</li>
+              <li>You have 7 attempts to guess a 6-letter word</li>
               <li>Your turtle grows with each winning streak</li>
               <li>Click 'How to Play' for more details</li>
             </ul>
@@ -119,7 +119,7 @@
         </button>
         <h2>How to Play</h2>
         <div class="instructions">
-          <p>Guess the 6-letter word in 8 tries!</p>
+          <p>Guess the 6-letter word in 7 tries!</p>
           <ul>
             <li>Each guess must be a valid 6-letter word</li>
             <li>
@@ -157,7 +157,7 @@ export default {
   data() {
     return {
       showInstructions: false,
-      attempts: Array(8)
+      attempts: Array(7)
         .fill()
         .map(() => Array(6).fill("")), // Fixed array creation
       currentGuess: "",
@@ -382,7 +382,7 @@ export default {
         this.attemptCount++;
 
         // Check if all attempts are exhausted
-        if (this.attemptCount >= 8) {
+        if (this.attemptCount >= 7) {
           this.gameOver = true;
           this.guessedCorrectly = false;
           this.streak = 0; // Reset streak on failure
@@ -405,7 +405,7 @@ export default {
       }
     },
     continueGame() {
-      this.attempts = Array(8)
+      this.attempts = Array(7)
         .fill()
         .map(() => Array(6).fill(""));
       this.attemptCount = 0;
@@ -515,7 +515,7 @@ export default {
 
 .grid {
   display: grid;
-  grid-template-rows: repeat(8, 1fr);
+  grid-template-rows: repeat(7, 1fr);
   gap: 0.25rem;
   margin-bottom: 1.5rem;
   max-width: 360px;
