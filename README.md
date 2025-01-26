@@ -1,35 +1,16 @@
-<<<<<<< HEAD
+Vocabulary-building game inspired by the classic Wordle.
+[Click here to Play](https://turdle-word-game.netlify.app/)
 
-# wordle-game
+## Features:
 
-## Project setup
+- 6 letter words.
+- Unlimited rounds allowed per day.
+- Meaning of the word is shown after each game.
 
-```
-npm install
-```
+## Tech Stack
 
-### Compiles and hot-reloads for development
+- **Vue.js** for the frontend.
+- **random-word-api.vercel.app** for generating new words.
+- **Dictionary API** for validating words and providing definitions.
 
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-
-```
-npm run build
-```
-
-### Lints and fixes files
-
-```
-npm run lint
-```
-
-### Customize configuration
-
-# See [Configuration Reference](https://cli.vuejs.org/config/).
-
-# Turtle-World
-
-> > > > > > > 3e5f2adcbdd31de3e4436593d32cdf325e3b98a7
+Personal/educational project inspired by popular word-guessing game Wordle.
